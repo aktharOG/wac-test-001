@@ -21,47 +21,62 @@ class HomeTab extends StatelessWidget {
     final homePro = context.watch<HomeViewModel>();
     return Scaffold(
       appBar: AppBar(
-      
         automaticallyImplyLeading: false,
         leadingWidth: 40,
         backgroundColor: primaryColor,
         leading: Padding(
           padding: const EdgeInsets.only(left: 10),
-          child: Image.asset(Images.cart,height: 50,width: 50,),
+          child: Image.asset(
+            Images.cart,
+            height: 50,
+            width: 50,
+          ),
         ),
-        title: CustomTextfield(controller: TextEditingController(), name: ""),
+        title: CustomTextfield(
+          controller: TextEditingController(),
+          name: "",
+          readOnly: true,
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20),
             child: Badge.count(
-              count: 0,
-              child: const Icon(Icons.notifications_outlined,color: Colors.white,)),
+                count: 0,
+                child: const Icon(
+                  Icons.notifications_outlined,
+                  color: Colors.white,
+                )),
           )
         ],
       ),
-      body: homePro.isLoading?const Loader():  RefreshIndicator(
-        onRefresh: () async{
-          homePro.onFetchHomeAPI();
-        },
-        child: ListView(
-          children:  [
-            if(homePro.homeModelList.isNotEmpty)
-              const BannerView(),
-        
-            const Column(
-              children: [
-                HeadingView(title: "Most Popular"),
-                MostPopularView(),
-                SingleBannerView(),
-                HeadingView(title: "Catagories"),
-                CategoriesView(),
-                HeadingView(title: "Featured Products"),
-                FeaturedProductsView(),
-              ],
-            )
-          ],
-        ),
-      ),
+      body: homePro.isLoading
+          ? const Loader()
+          : RefreshIndicator(
+              onRefresh: () async {
+                homePro.onFetchHomeAPI();
+                   homePro.fetchLocalData();
+
+              },
+              child: ListView(
+                children: [
+                  if (homePro.homeModelList.isNotEmpty) const BannerView(),
+                  const Column(
+                    children: [
+                      HeadingView(title: "Most Popular"),
+                      MostPopularView(),
+                      SingleBannerView(),
+                      HeadingView(title: "Catagories"),
+                      CategoriesView(),
+                      HeadingView(title: "Featured Products"),
+                      FeaturedProductsView(),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 15.h,
+                  )
+                ],
+              ),
+            ),
     );
   }
 }
@@ -73,18 +88,19 @@ class FeaturedProductsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final homePro  = context.watch<HomeViewModel>();
+    final homePro = context.watch<HomeViewModel>();
     return SizedBox(
       height: 230.h,
       child: ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
-          itemBuilder: (context, index) =>  ProductItem(model:homePro.homeModelList[1].contents![index] ),
+          itemBuilder: (context, index) =>
+              ProductItem(model: homePro.featuredProductsList[index]),
           separatorBuilder: (context, index) => const SizedBox(
                 width: 10,
               ),
-          itemCount: homePro.homeModelList[1].contents!.length),
+          itemCount: homePro.featuredProductsList.length),
     );
   }
 }
@@ -96,17 +112,19 @@ class CategoriesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final homePro = Provider.of<HomeViewModel>(context);
     return SizedBox(
-      height: 110.h,
+      height: 95.h,
       child: ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
-          itemBuilder: (context, index) => const CategoryItem(),
+          itemBuilder: (context, index) =>
+              CategoryItem(model: homePro.categoriesList[index]),
           separatorBuilder: (context, index) => const SizedBox(
                 width: 10,
               ),
-          itemCount: 5),
+          itemCount: homePro.categoriesList.length),
     );
   }
 }
@@ -126,7 +144,7 @@ class SingleBannerView extends StatelessWidget {
               fit: BoxFit.cover,
               height: 100.h,
               width: MediaQuery.of(context).size.width,
-              imageUrl:
+              imageUrl: context.watch<HomeViewModel>().singleBannerUrl ??
                   "https://oxygen-test.webc.in/media/cache/800x0/mobile/banner/i watch New_1675658860.jpg")),
     );
   }
@@ -146,7 +164,8 @@ class MostPopularView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
-          itemBuilder: (context, index) =>  ProductItem(model:  homePro.homeModelList[1].contents![index]),
+          itemBuilder: (context, index) =>
+              ProductItem(model: homePro.homeModelList[1].contents![index]),
           separatorBuilder: (context, index) => const SizedBox(
                 width: 10,
               ),
@@ -156,33 +175,33 @@ class MostPopularView extends StatelessWidget {
 }
 
 class CategoryItem extends StatelessWidget {
-  const CategoryItem({
-    super.key,
-  });
+  final Content model;
+  const CategoryItem({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xffD4D4D4), width: 2),
-          borderRadius: BorderRadius.circular(20)),
-      child: Column(
-        children: [
-          CachedNetworkImage(
-              height: 80,
-              width: 80,
-              imageUrl:
-                  "https://oxygen-test.webc.in/media/cache/100x0/mobile/homeCategories/Mask Group 4408_1678191046.png"),
-          SizedBox(
-            height: 5.h,
-          ),
-          const CustomText(
-            name: "Grocery & Foods",
-            fontsize: 12,
-          )
-        ],
+    return Center(
+      child: Container(
+        // width: 120,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xffD4D4D4), width: 2),
+            borderRadius: BorderRadius.circular(20)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CachedNetworkImage(
+                height: 60, width: 100, imageUrl: model.imageUrl ?? ''),
+            SizedBox(
+              height: 5.h,
+            ),
+            CustomText(
+              name: model.title ?? "Grocery & Foods",
+              fontsize: 12,
+            )
+          ],
+        ),
       ),
     );
   }
@@ -215,13 +234,17 @@ class HeadingView extends StatelessWidget {
 
 class ProductItem extends StatelessWidget {
   final Content model;
-  const ProductItem({
-    super.key,
-    required this.model
-  });
+  const ProductItem({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
+    String cleanedOfferPrice =
+        model.offerPrice!.replaceAll('₹', '').replaceAll(',', '');
+    String cleanedActualPrice =
+        model.actualPrice!.replaceAll('₹', '').replaceAll(',', '');
+    double price = double.tryParse(cleanedOfferPrice) ?? 0.0;
+    double actualPrice = double.tryParse(cleanedActualPrice) ?? 0.0;
+
     return Container(
       width: 180,
       padding: const EdgeInsets.all(10),
@@ -231,31 +254,36 @@ class ProductItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 5.h,),
+          SizedBox(
+            height: 5.h,
+          ),
           Center(
             child: CachedNetworkImage(
                 height: 80.h,
                 width: 100.w,
                 fit: BoxFit.cover,
-                imageUrl:
-                    model.productImage??''),
+                imageUrl: model.productImage ?? ''),
           ),
-          SizedBox(height: 10.h,),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: const Color(0xffFB7B4E)),
-            child: const CustomText(
-              name: "Sale 65% Off",
-              fontsize: 8,
+          SizedBox(
+            height: 10.h,
+          ),
+          if (price > 0)
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: const Color(0xffFB7B4E)),
+              child: CustomText(
+                name: "Sale ${model.discount}",
+                fontsize: 8,
+              ),
             ),
-          ),
           SizedBox(
             height: 5.h,
           ),
-          const CustomText(
-            name: "Lenovo K3 Mini Outdoor Wireless Speaker",
+          CustomText(
+            name:
+                model.productName ?? "Lenovo K3 Mini Outdoor Wireless Speaker",
             maxlines: 2,
             fontsize: 10,
           ),
@@ -263,29 +291,40 @@ class ProductItem extends StatelessWidget {
             height: 5.h,
           ),
           RatingBar.builder(
-   initialRating: 3,
-   itemSize: 20,
-   minRating: 1,
-   
-   direction: Axis.horizontal,
-   allowHalfRating: false,
-  
-   itemCount: 5,
-   itemPadding: const EdgeInsets.symmetric(horizontal: 0.0),
-   itemBuilder: (context, _) => const Icon(
-     Icons.star,
-     color: Color(0xffFFB038),
-   ),
-   onRatingUpdate: (rating) {
-     print(rating);
-   },
-),
-  SizedBox(
+            initialRating: model.productRating?.toDouble() ?? 0,
+            itemSize: 20,
+            minRating: 1,
+            direction: Axis.horizontal,
+            allowHalfRating: false,
+            itemCount: 5,
+            itemPadding: const EdgeInsets.symmetric(horizontal: 0.0),
+            itemBuilder: (context, _) => const Icon(
+              Icons.star,
+              color: Color(0xffFFB038),
+            ),
+            onRatingUpdate: (rating) {
+              print(rating);
+            },
+          ),
+          SizedBox(
             height: 5.h,
           ),
-          const CustomText(
-            name: "৳100 ৳300",
-            fontsize: 11,
+          Row(
+            children: [
+              CustomText(
+                name: model.offerPrice ?? "৳300",
+                fontsize: 11,
+              ),
+              SizedBox(
+                width: 5.w,
+              ),
+              if (price != actualPrice)
+                CustomText(
+                  decoration: TextDecoration.lineThrough,
+                  name: model.actualPrice ?? "৳100",
+                  fontsize: 11,
+                ),
+            ],
           )
         ],
       ),
@@ -297,7 +336,6 @@ class BannerView extends StatelessWidget {
   const BannerView({
     super.key,
   });
-
 
   @override
   Widget build(BuildContext context) {
@@ -315,8 +353,8 @@ class BannerView extends StatelessWidget {
               homePro.onChangeSlider(index);
             },
           ),
-          items: homePro.homeModelList[0].contents!.asMap().entries.map((i) {
-            var slider = homePro.homeModelList[0].contents![i.key];
+          items: homePro.bannerList.asMap().entries.map((i) {
+            var slider = homePro.bannerList[i.key];
             return Builder(
               builder: (BuildContext context) {
                 return Image.network(
@@ -328,10 +366,9 @@ class BannerView extends StatelessWidget {
             );
           }).toList(),
         ),
-
-         Padding(
-           padding: const EdgeInsets.only(bottom: 10),
-           child: Center(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Center(
             child: DotsIndicator(
               dotsCount: homePro.homeModelList[0].contents!.isEmpty
                   ? 1
@@ -344,9 +381,8 @@ class BannerView extends StatelessWidget {
                 activeColor: Colors.white,
               ),
             ),
-                   ),
-         ),
-      
+          ),
+        ),
       ],
     );
   }

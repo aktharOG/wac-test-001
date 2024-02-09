@@ -8,6 +8,7 @@ import 'package:wac_test_001/view_model/home_view_model.dart';
 GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
 void main() {
+  
   runApp(const MainApp());
 }
 

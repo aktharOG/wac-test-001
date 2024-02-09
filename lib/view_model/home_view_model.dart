@@ -8,6 +8,7 @@ import 'package:wac_test_001/main.dart';
 import 'package:wac_test_001/model/apis/apis.dart';
 import 'package:wac_test_001/model/response/home_model.dart';
 import 'package:wac_test_001/model/services/api_service.dart';
+import 'package:wac_test_001/model/services/sqflite.dart';
 import 'package:wac_test_001/view/screens/home/tabs/account_tab.dart';
 import 'package:wac_test_001/view/screens/home/tabs/cart_tab.dart';
 import 'package:wac_test_001/view/screens/home/tabs/category_tab.dart';
@@ -18,7 +19,7 @@ class HomeViewModel extends ChangeNotifier {
   int _currentPage = 0;
   int _currentSlider = 0;
 
-  String singleBannerUrl = "";
+  String? singleBannerUrl;
 
   List<HomeModel> _homeModelList = [];
   List<Content> _popularProductsList = [];
@@ -26,7 +27,11 @@ class HomeViewModel extends ChangeNotifier {
   List<Content> _bannerList = [];
   List<Content> _categoriesList = [];
 
+  List<Map<String, dynamic>> bannerLocalData = [];
+  List<Map<String, dynamic>> popularLocalData = [];
 
+  List<Map<String, dynamic>> categoryLocalData = [];
+  List<Map<String, dynamic>> featuredLocalData = [];
 
   CarouselController carouselController = CarouselController();
 
@@ -38,7 +43,7 @@ class HomeViewModel extends ChangeNotifier {
   List<Content> get bannerList => _bannerList;
   List<Content> get categoriesList => _categoriesList;
 
-  List pages = const [
+  List<Widget> pages = const [
     HomeTab(),
     CategoryTab(),
     CartTab(),
@@ -84,34 +89,57 @@ class HomeViewModel extends ChangeNotifier {
             switch (i.title) {
               case "Best Sellers":
                 _featuredProductsList = i.contents ?? [];
+                _featuredProductsList.map((e)async{
+           
+                 Map<String,dynamic>item = {
+                  "title":e.title,
+                  "imageUrl":e.imageUrl,
+                  "productName":e.productImage,
+                  "productImage":e.productImage,
+                  "productRating":e.productRating,
+                  "actualPrice":e.actualPrice,
+                  "offerPrice":e.offerPrice,
+                  "discount":e.discount
+                 };
+                await DatabaseHelper.instance.insertData("featured", item);
+
+                });
                 break;
               case "Most Popular":
                 _popularProductsList = i.contents ?? [];
                 break;
             }
-          }else if(i.type =="banner_slider"){
-            _bannerList = i.contents??[];
-          }else if (i.type == "catagories"){
-            _categoriesList = i.contents??[];
-          }else if (i.type == "banner_single"){
-            singleBannerUrl = i.imageUrl??'';
-          }
-          
-          else{
-
-          }
+          } else if (i.type == "banner_slider") {
+            _bannerList = i.contents ?? [];
+          } else if (i.type == "catagories") {
+            _categoriesList = i.contents ?? [];
+          } else if (i.type == "banner_single") {
+            singleBannerUrl = i.imageUrl ?? '';
+          } else {}
         }
 
         log("popular products : ${_popularProductsList.length}");
         log("featired products : ${_featuredProductsList.length}");
-                log("categories : ${_categoriesList.length}");
+        log("categories : ${_categoriesList.length}");
         log("banner : ${_bannerList.length}");
-
       }
       isLoading = false;
       notifyListeners();
     } catch (e) {
       showSnackBar(navigatorKey.currentContext!, "Something went wrong");
     }
+  }
+
+  //! fetching local data
+
+  fetchLocalData() async {
+    bannerLocalData = await DatabaseHelper.instance.fetchData("banner");
+    popularLocalData = await DatabaseHelper.instance.fetchData("popular");
+    categoryLocalData = await DatabaseHelper.instance.fetchData("category");
+    featuredLocalData = await DatabaseHelper.instance.fetchData("featured");
+    print("bannerLocalData : ${bannerLocalData.length}");
+    print("popularLocalData : ${popularLocalData.length}");
+    print("categoryLocalData : ${categoryLocalData.length}");
+    print("featuredLocalData : ${featuredLocalData.length}");
   }
 }

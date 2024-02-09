@@ -27,32 +27,17 @@ class CustomTextfield extends StatelessWidget {
       margin: const EdgeInsets.only(top: 0),
       height: 30.h,
       decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            offset:const Offset(1, 1),
+            blurRadius: 5
+          )
+        ],
           borderRadius: BorderRadius.circular(30), color: Colors.grey.shade200),
       child: Row(
         children: [
-          if (leading != null)
-            Row(
-              children: [
-                SizedBox(
-                  width: 10.w,
-                ),
-                leading!,
-              ],
-            ),
-          if (showCountryCode)
-            SizedBox(
-              width: 10.w,
-            ),
-          if (showCountryCode)
-            const CustomText(
-              name: "+91",
-              fontsize: 18,
-            ),
-          if (showCountryCode)
-            const Padding(
-              padding: EdgeInsets.all(5.0),
-              child: VerticalDivider(),
-            ),
+        
           Expanded(
               child: Padding(
             padding: const EdgeInsets.only(left: 10),
