@@ -54,21 +54,24 @@ class HomeTab extends StatelessWidget {
           : RefreshIndicator(
               onRefresh: () async {
                 homePro.onFetchHomeAPI();
-                   homePro.fetchLocalData();
-
+                homePro.fetchLocalData();
               },
               child: ListView(
+                physics: const BouncingScrollPhysics(),
                 children: [
-                  if (homePro.homeModelList.isNotEmpty) const BannerView(),
-                  const Column(
+                  if (homePro.bannerList.isNotEmpty) const BannerView(),
+                   Column(
                     children: [
-                      HeadingView(title: "Most Popular"),
-                      MostPopularView(),
-                      SingleBannerView(),
-                      HeadingView(title: "Catagories"),
-                      CategoriesView(),
-                      HeadingView(title: "Featured Products"),
-                      FeaturedProductsView(),
+                      const HeadingView(title: "Most Popular"),
+                      if(homePro.popularProductsList.isNotEmpty)
+                      const MostPopularView(),
+                      const SingleBannerView(),
+                      const HeadingView(title: "Catagories"),
+                       if(homePro.categoriesList.isNotEmpty)
+                      const CategoriesView(),
+                      const HeadingView(title: "Featured Products"),
+                       if(homePro.featuredProductsList.isNotEmpty)
+                      const FeaturedProductsView(),
                     ],
                   ),
                   SizedBox(
@@ -165,11 +168,11 @@ class MostPopularView extends StatelessWidget {
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
           itemBuilder: (context, index) =>
-              ProductItem(model: homePro.homeModelList[1].contents![index]),
+              ProductItem(model: homePro.popularProductsList[index]),
           separatorBuilder: (context, index) => const SizedBox(
                 width: 10,
               ),
-          itemCount: homePro.homeModelList[1].contents!.length),
+          itemCount: homePro.popularProductsList.length),
     );
   }
 }
@@ -192,7 +195,9 @@ class CategoryItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CachedNetworkImage(
-                height: 60, width: 100, imageUrl: model.imageUrl ?? ''),
+                height: 60, width: 100, imageUrl: model.imageUrl ?? '',
+                errorWidget: (context, url, error) =>const Icon(Icons.image,size: 60,color: Colors.grey,),
+                ),
             SizedBox(
               height: 5.h,
             ),
@@ -238,12 +243,19 @@ class ProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String cleanedOfferPrice =
+    String cleanedOfferPrice = "₹100";
+    String cleanedActualPrice = "₹100";
+    double price = 0.0;
+    double actualPrice = 0.0;
+    if(model.offerPrice!=null || model.actualPrice!=null){
+  cleanedOfferPrice =
         model.offerPrice!.replaceAll('₹', '').replaceAll(',', '');
-    String cleanedActualPrice =
+     cleanedActualPrice =
         model.actualPrice!.replaceAll('₹', '').replaceAll(',', '');
-    double price = double.tryParse(cleanedOfferPrice) ?? 0.0;
-    double actualPrice = double.tryParse(cleanedActualPrice) ?? 0.0;
+     price = double.tryParse(cleanedOfferPrice) ?? 0.0;
+     actualPrice = double.tryParse(cleanedActualPrice) ?? 0.0;
+    }
+   
 
     return Container(
       width: 180,
@@ -347,7 +359,7 @@ class BannerView extends StatelessWidget {
           carouselController: homePro.carouselController,
           options: CarouselOptions(
             viewportFraction: 1,
-            height: 150.0,
+            height: 180.0,
             autoPlay: true,
             onPageChanged: (index, reason) {
               homePro.onChangeSlider(index);
@@ -357,10 +369,15 @@ class BannerView extends StatelessWidget {
             var slider = homePro.bannerList[i.key];
             return Builder(
               builder: (BuildContext context) {
-                return Image.network(
-                  slider.imageUrl!,
+                return CachedNetworkImage(
+                  imageUrl: slider.imageUrl ?? "",
                   fit: BoxFit.cover,
                   width: MediaQuery.of(context).size.width,
+                  errorWidget: (context, url, error) => const Icon(
+                    Icons.image,
+                    size: 100,
+                    color: Colors.grey,
+                  ),
                 );
               },
             );
@@ -370,13 +387,12 @@ class BannerView extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 10),
           child: Center(
             child: DotsIndicator(
-              dotsCount: homePro.homeModelList[0].contents!.isEmpty
-                  ? 1
-                  : homePro.homeModelList[0].contents!.length,
+              dotsCount:
+                  homePro.bannerList.isEmpty ? 1 : homePro.bannerList.length,
               position: homePro.currentSlider,
               decorator: const DotsDecorator(
-                size: Size(9, 9),
-                activeSize: Size(11, 11),
+                size: Size(7, 7),
+                activeSize: Size(9, 9),
                 color: Colors.grey, // Inactive color
                 activeColor: Colors.white,
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:wac_test_001/model/services/shared_pref_service.dart';
 import 'package:wac_test_001/view/screens/home/home_screen.dart';
 import 'package:wac_test_001/view_model/home_view_model.dart';
 
@@ -8,6 +9,8 @@ import 'package:wac_test_001/view_model/home_view_model.dart';
 GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+ SharedPrefrenceService().init(); 
   
   runApp(const MainApp());
 }

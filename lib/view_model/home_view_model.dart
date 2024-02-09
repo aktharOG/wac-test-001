@@ -8,6 +8,7 @@ import 'package:wac_test_001/main.dart';
 import 'package:wac_test_001/model/apis/apis.dart';
 import 'package:wac_test_001/model/response/home_model.dart';
 import 'package:wac_test_001/model/services/api_service.dart';
+import 'package:wac_test_001/model/services/shared_pref_service.dart';
 import 'package:wac_test_001/model/services/sqflite.dart';
 import 'package:wac_test_001/view/screens/home/tabs/account_tab.dart';
 import 'package:wac_test_001/view/screens/home/tabs/cart_tab.dart';
@@ -34,6 +35,7 @@ class HomeViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> featuredLocalData = [];
 
   CarouselController carouselController = CarouselController();
+  SharedPrefrenceService prefrenceService = SharedPrefrenceService();
 
   int get currentPage => _currentPage;
   int get currentSlider => _currentSlider;
@@ -89,32 +91,23 @@ class HomeViewModel extends ChangeNotifier {
             switch (i.title) {
               case "Best Sellers":
                 _featuredProductsList = i.contents ?? [];
-                _featuredProductsList.map((e)async{
-           
-                 Map<String,dynamic>item = {
-                  "title":e.title,
-                  "imageUrl":e.imageUrl,
-                  "productName":e.productImage,
-                  "productImage":e.productImage,
-                  "productRating":e.productRating,
-                  "actualPrice":e.actualPrice,
-                  "offerPrice":e.offerPrice,
-                  "discount":e.discount
-                 };
-                await DatabaseHelper.instance.insertData("featured", item);
+                saveTolocalDB(_featuredProductsList, "featured");
 
-                });
                 break;
               case "Most Popular":
                 _popularProductsList = i.contents ?? [];
+                saveTolocalDB(_popularProductsList, "popular");
                 break;
             }
           } else if (i.type == "banner_slider") {
             _bannerList = i.contents ?? [];
+            saveTolocalDB(_bannerList, "banner");
           } else if (i.type == "catagories") {
             _categoriesList = i.contents ?? [];
+            saveTolocalDB(_categoriesList, "category");
           } else if (i.type == "banner_single") {
             singleBannerUrl = i.imageUrl ?? '';
+            prefrenceService.saveSingleBanner(singleBannerUrl ?? '');
           } else {}
         }
 
@@ -126,20 +119,50 @@ class HomeViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     } catch (e) {
+      isLoading = false;
+      notifyListeners();
       showSnackBar(navigatorKey.currentContext!, "Something went wrong");
     }
   }
 
-  //! fetching local data
+  //! saving & fetching local data
+
+  saveTolocalDB(list, tableName) {
+    list.map((e) async {
+      Map<String, dynamic> item = {
+        "title": e.title,
+        "imageUrl": e.imageUrl,
+        "productName": e.productImage,
+        "productImage": e.productImage,
+        "productRating": e.productRating ?? 0,
+        "actualPrice": e.actualPrice,
+        "offerPrice": e.offerPrice,
+        "discount": e.discount
+      };
+      await DatabaseHelper.instance.insertData(tableName, item);
+    }).toList();
+  }
 
   fetchLocalData() async {
     bannerLocalData = await DatabaseHelper.instance.fetchData("banner");
     popularLocalData = await DatabaseHelper.instance.fetchData("popular");
     categoryLocalData = await DatabaseHelper.instance.fetchData("category");
     featuredLocalData = await DatabaseHelper.instance.fetchData("featured");
-    print("bannerLocalData : ${bannerLocalData.length}");
+    singleBannerUrl = await prefrenceService.getStringSingleBanner();
+
+    _bannerList = bannerLocalData.map((e) => Content.fromJson(e)).toList();
+    _popularProductsList =
+        popularLocalData.map((e) => Content.fromJson(e)).toList();
+    _categoriesList =
+        categoryLocalData.map((e) => Content.fromJson(e)).toList();
+    _featuredProductsList =
+        featuredLocalData.map((e) => Content.fromJson(e)).toList();
+
+    print(
+        "bannerLocalData : $bannerLocalData ${bannerLocalData.length}  ${_bannerList.length}");
     print("popularLocalData : ${popularLocalData.length}");
     print("categoryLocalData : ${categoryLocalData.length}");
     print("featuredLocalData : ${featuredLocalData.length}");
+    notifyListeners();
   }
 }

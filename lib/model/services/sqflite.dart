@@ -58,7 +58,7 @@ class DatabaseHelper {
   // }
   Future<int> insertData(String table, Map<String, dynamic> data) async {
   log("inserting data");
-  final int id = data['title']; // Assuming 'id' is the key for the ID field in the data map
+  final String id = data['title']??''; // Assuming 'id' is the key for the ID field in the data map
   final Database db = await instance.database;
 
   final List<Map<String, dynamic>> existingData = await db.query(
